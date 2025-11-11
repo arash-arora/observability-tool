@@ -11,7 +11,7 @@ export function DashboardCard({
 }) {
   const isPositive = change.startsWith("+")
   return (
-    <Card className="shadow-sm border border-gray-200">
+    <Card className="shadow-sm border border-gray-200 bg-[#0d1117] text-gray-100">
       <CardContent className="p-6">
         <h3 className="text-gray-600 text-sm">{title}</h3>
         <div className="text-3xl font-bold mt-2">{value}</div>

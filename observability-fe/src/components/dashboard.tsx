@@ -38,6 +38,7 @@ export function DashboardAnalytics() {
           output_tokens: t.output_tokens ?? t.completion ?? 0,
           total_tokens: t.total_tokens ?? t.total ?? 0,
         }))
+        console.log(trace)
 
         setTraceData(trace)
         setTokenData(normalizedTokenData)

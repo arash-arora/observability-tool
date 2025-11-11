@@ -1,4 +1,5 @@
-from fastapi import Depends, FastAPI
+from typing import Optional
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from src.db import _get_client
 from datetime import datetime, timedelta
@@ -24,7 +25,6 @@ def trace_volume(client = Depends(_get_client)):
             count() AS traces
         FROM observations
         WHERE type = 'GENERATION'
-          AND event_ts >= now() - INTERVAL 24 HOUR
         GROUP BY hour
         ORDER BY hour ASC
     """
@@ -98,11 +98,10 @@ def get_total_tokens_used(client = Depends(_get_client)):
     return {"total_tokens": total}
 
 @app.get("/metrics/average_latency")
-def average_latency_total():
+def average_latency_total(client = Depends(_get_client)):
     """
     Returns the overall average latency (seconds) across all GENERATION observations.
     """
-    client = _get_client()
     query = """
         SELECT
             round(avg(greatest(toFloat64(end_time - start_time), 0)), 3) AS avg_latency
@@ -114,11 +113,10 @@ def average_latency_total():
     return {"average_latency": avg_latency}
 
 @app.get("/metrics/total_cost")
-def get_total_cost():
+def get_total_cost(client = Depends(_get_client)):
     """
     Returns the overall total cost ($) across all GENERATION observations.
     """
-    client = _get_client()
     query = """
         SELECT SUM(total_cost) FROM observations
     """
@@ -127,12 +125,11 @@ def get_total_cost():
     return {"total_cost": total_cost}
 
 @app.get("/metrics/success_rate")
-def success_rate():
+def success_rate(client = Depends(_get_client)):
     """
     Returns the success rate (percentage) of all GENERATION observations.
     A 'success' is identified when status_message = 'success' or level = 'DEFAULT'.
     """
-    client = _get_client()
     query = """
         SELECT
             round(
@@ -144,3 +141,158 @@ def success_rate():
     result = client.query(query).result_rows
     success_rate = float(result[0][0]) if result and result[0][0] is not None else 0.0
     return {"success_rate": success_rate}
+
+@app.get("/traces")
+def get_traces(project_id: str = Query(...), client = Depends(_get_client)):
+    """Fetch all traces for a given project_id."""
+    query = f"""
+        SELECT
+            t.id AS trace_id,
+            t.timestamp,
+            t.name,
+            t.input,
+            t.output,
+            t.bookmarked,
+            o.total_cost,
+            o.usage_details,
+            toFloat64(o.end_time - o.start_time) AS latency
+        FROM traces AS t
+        JOIN observations AS o ON t.id = o.trace_id
+        WHERE t.project_id = '{project_id}'
+        LIMIT 100
+    """
+    return client.query(query).named_results()
+
+@app.get("/traces/details")
+def get_trace_with_observations_and_scores(
+    project_id: Optional[str] = Query(None, description="Project ID"),
+    trace_id: Optional[str] = Query(None, description="Trace ID"),
+    timestamp: Optional[datetime] = Query(None, description="Optional timestamp filter"),
+    client = Depends(_get_client),
+):
+    """Retrieve trace data with associated observations, scores, and computed totals."""
+
+    obs_query = f"""
+    SELECT
+        id,
+        trace_id,
+        project_id,
+        type,
+        parent_observation_id,
+        environment,
+        start_time,
+        end_time,
+        name,
+        level,
+        status_message,
+        version,
+        input,
+        output,
+        metadata,
+        provided_model_name,
+        internal_model_id,
+        model_parameters,
+        provided_usage_details,
+        usage_details,
+        provided_cost_details,
+        cost_details,
+        total_cost,
+        completion_start_time,
+        prompt_id,
+        prompt_name,
+        prompt_version,
+        created_at,
+        updated_at,
+        event_ts
+    FROM observations
+    WHERE trace_id = '{trace_id}'
+      AND project_id = '{project_id}'
+    ORDER BY event_ts DESC
+    LIMIT 1 BY id, project_id
+    """
+
+    # Convert generator → list
+    try:
+        obs_gen = client.query(obs_query).named_results()
+        observations = list(obs_gen)
+    except Exception as e:
+        return {"detail": "Failed to query observations", "error": str(e)}
+
+    if not observations:
+        return {"detail": "No observations found for this trace."}
+
+    root_obs = next(
+    (obs for obs in observations if not obs.get("parent_observation_id")),
+    observations[0],  # fallback to first if all have parents
+)
+
+    # --- Compute latency_seconds from first observation ---
+    latency_seconds = None
+    def safe_to_datetime(val):
+        """Convert ClickHouse/Python/str datetime variants safely."""
+        if isinstance(val, datetime):
+            return val
+        if isinstance(val, str):
+            try:
+                return datetime.fromisoformat(val.replace("Z", "+00:00"))
+            except Exception:
+                pass
+        return None
+    
+    latency_seconds = None
+    start_dt = safe_to_datetime(root_obs.get("start_time"))
+    end_dt = safe_to_datetime(root_obs.get("end_time"))
+
+    if start_dt and end_dt:
+        latency_seconds = (end_dt - start_dt).total_seconds()
+
+    # --- Compute total cost & total tokens across all observations ---
+    total_cost = 0.0
+    total_tokens = 0
+
+    for obs in observations:
+        # Sum cost
+        cost = obs.get("total_cost")
+        try:
+            total_cost += float(cost)
+        except:
+            pass
+
+        # Sum token usage if exists
+        usage_details = obs.get("usage_details")
+        if usage_details and isinstance(usage_details, dict):
+            token_val = usage_details.get("total") or 0
+            if isinstance(token_val, (int, float)):
+                total_tokens += token_val
+
+    # --- Optionally fetch scores (if table exists) ---
+    score_query = f"""
+    SELECT id, name, value, description, created_at
+    FROM scores
+    WHERE trace_id = '{trace_id}'
+      AND project_id = '{project_id}'
+    ORDER BY created_at DESC
+    """
+    try:
+        scores = list(client.query(score_query).named_results())
+    except Exception:
+        scores = []
+
+    # --- Build response ---
+    trace_details = {
+        "trace_id": root_obs.get("trace_id"),
+        "trace_name": root_obs.get("name"),
+        "trace_environment": root_obs.get("environment"),
+        "trace_input": root_obs.get("input"),
+        "trace_output": root_obs.get("output"),
+        "trace_metadata": root_obs.get("metadata"),
+        "latency_seconds": latency_seconds,
+        "trace_created_at": root_obs.get("created_at"),
+        "observations": observations,
+        "scores": scores,
+        "total_cost": total_cost,
+        "total_tokens": total_tokens,
+    }
+
+    return trace_details
+

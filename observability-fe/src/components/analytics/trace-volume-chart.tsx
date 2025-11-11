@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 
 export function TraceVolumeChart({ data }: { data: any[] }) {
   return (
-    <Card>
+    <Card className="bg-[#0d1117] text-gray-100">
       <CardHeader>
         <CardTitle>Requests Volume (Last 24h)</CardTitle>
       </CardHeader>

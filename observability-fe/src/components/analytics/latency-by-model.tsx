@@ -51,7 +51,7 @@ export function LatencyByModel({ data }: { data: LatencyModelData[] }) {
   }
 
   return (
-    <Card>
+    <Card className="bg-[#0d1117] text-gray-100">
       <CardHeader>
         <CardTitle>Model Efficiency Metrics</CardTitle>
       </CardHeader>

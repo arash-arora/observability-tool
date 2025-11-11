@@ -47,7 +47,7 @@ export default function Dashboard() {
   if (error) return <div className="p-8 text-red-500">{error}</div>
 
   return (
-    <main className="p-10">
+    <div className="p-10">
       <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-5">
@@ -70,6 +70,6 @@ export default function Dashboard() {
       </div>
 
       <DashboardAnalytics />
-    </main>
+    </div>
   )
 }
