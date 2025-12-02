@@ -12,7 +12,7 @@ interface ObservationDetailProps {
 export function ObservationDetail({ observation }: ObservationDetailProps) {
   if (!observation) {
     return (
-      <div className="h-full flex items-center justify-center text-muted-foreground p-8 border-l bg-slate-50/50">
+      <div className="h-full flex items-center justify-center text-muted-foreground p-8 border-l bg-muted/30">
         <div className="text-center">
           <Activity className="h-12 w-12 mx-auto mb-4 opacity-20" />
           <p>Select an observation to view details</p>
@@ -23,7 +23,7 @@ export function ObservationDetail({ observation }: ObservationDetailProps) {
 
   return (
     <div className="h-full border-l bg-background flex flex-col overflow-hidden">
-      <div className="p-6 border-b bg-slate-50/30">
+      <div className="p-6 border-b bg-muted/30">
         <div className="flex items-center justify-between mb-4">
           <Badge variant="outline" className="font-mono text-xs uppercase">
             {observation.type}
@@ -55,7 +55,7 @@ export function ObservationDetail({ observation }: ObservationDetailProps) {
         {observation.input && (
             <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Input</h4>
-                <div className="rounded-md bg-slate-950 text-slate-50 p-4 font-mono text-xs overflow-x-auto">
+                <div className="rounded-md bg-[#1e293b] text-slate-50 p-4 font-mono text-xs overflow-x-auto">
                     <pre>{JSON.stringify(observation.input, null, 2)}</pre>
                 </div>
             </div>
@@ -64,7 +64,7 @@ export function ObservationDetail({ observation }: ObservationDetailProps) {
         {observation.output && (
             <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Output</h4>
-                <div className="rounded-md bg-slate-950 text-slate-50 p-4 font-mono text-xs overflow-x-auto">
+                <div className="rounded-md bg-[#1e293b] text-slate-50 p-4 font-mono text-xs overflow-x-auto">
                     <pre>{JSON.stringify(observation.output, null, 2)}</pre>
                 </div>
             </div>
@@ -72,7 +72,7 @@ export function ObservationDetail({ observation }: ObservationDetailProps) {
 
         <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Metadata</h4>
-             <Card className="bg-slate-50">
+             <Card className="bg-muted/50">
                 <CardContent className="p-4">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-muted-foreground">ID</div>

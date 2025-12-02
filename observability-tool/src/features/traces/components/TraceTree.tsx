@@ -51,8 +51,8 @@ const ObservationRow = ({
         className={cn(
           "flex items-center gap-2 py-2 px-2 rounded-md cursor-pointer transition-colors border-l-2",
           isSelected 
-            ? "bg-blue-50 dark:bg-blue-900/20 border-primary" 
-            : "border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:border-primary/50"
+            ? "bg-primary/10 border-primary" 
+            : "border-transparent hover:bg-muted hover:border-primary/50"
         )}
         style={{ marginLeft: `${depth * 24}px` }}
         onClick={(e) => {
@@ -61,7 +61,7 @@ const ObservationRow = ({
         }}
       >
         <div 
-            className="flex items-center justify-center w-4 h-4 shrink-0 hover:bg-slate-200 rounded"
+            className="flex items-center justify-center w-4 h-4 shrink-0 hover:bg-muted rounded"
             onClick={(e) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
@@ -69,9 +69,9 @@ const ObservationRow = ({
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-slate-500" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-slate-500" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             )
           ) : (
             <div className="w-4" />
@@ -82,9 +82,9 @@ const ObservationRow = ({
           variant="outline"
           className={cn(
             "mr-2 h-6 shrink-0 font-mono text-[10px] uppercase tracking-wider",
-            observation.type === "GENERATION" && "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800",
-            observation.type === "SPAN" && "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700",
-            observation.type === "EVENT" && "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800"
+            observation.type === "GENERATION" && "bg-[#1e293b] text-slate-50 border-[#1e293b]",
+            observation.type === "SPAN" && "bg-muted text-muted-foreground border-border",
+            observation.type === "EVENT" && "bg-orange-50 text-orange-700 border-orange-200"
           )}
         >
           {observation.type}

@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils";
 const sidebarItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Traces", href: "/traces", icon: List },
-  { name: "Sessions", href: "/sessions", icon: History },
-  { name: "Prompts", href: "/prompts", icon: Terminal },
-  { name: "Datasets", href: "/datasets", icon: Database },
-  { name: "Scores", href: "/scores", icon: BarChart },
-  { name: "Models", href: "/models", icon: Box },
-  { name: "Settings", href: "/settings", icon: Settings },
+  // { name: "Sessions", href: "/sessions", icon: History },
+  // { name: "Prompts", href: "/prompts", icon: Terminal },
+  // { name: "Datasets", href: "/datasets", icon: Database },
+  // { name: "Scores", href: "/scores", icon: BarChart },
+  // { name: "Models", href: "/models", icon: Box },
+  // { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 const bottomItems = [
@@ -38,7 +38,7 @@ export function Sidebar() {
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-muted/10 text-foreground">
       <div className="flex h-14 items-center border-b px-4 font-bold text-xl bg-background/50 backdrop-blur-sm">
-        <span className="text-primary mr-1">Langfuse</span> Clone
+        Observability Tool
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="grid gap-1 px-2">

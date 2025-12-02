@@ -8,86 +8,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Share, Download, Clock, DollarSign, Zap, Calendar, User, Tag } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, use, useEffect } from "react";
+import { generateObservationTree } from "@/lib/mock-data";
 
-const mockTraceData: Observation[] = [
-  {
-    id: "root",
-    name: "Chat Interaction",
-    type: "SPAN",
-    startTime: "2023-10-26 10:23:45.000",
-    endTime: "2023-10-26 10:23:46.200",
-    latency: "1.2s",
-    cost: "$0.0024",
-    status: "success",
-    input: {
-        messages: [
-            { role: "user", content: "Hello, how are you?" }
-        ]
-    },
-    output: {
-        content: "I am an AI assistant, here to help you."
-    },
-    children: [
-      {
-        id: "retrieval",
-        name: "Retrieve Context",
-        type: "SPAN",
-        startTime: "2023-10-26 10:23:45.050",
-        endTime: "2023-10-26 10:23:45.450",
-        latency: "0.4s",
-        status: "success",
-        input: { query: "Hello, how are you?" },
-        output: { documents: [] },
-        children: [
-            {
-                id: "embedding",
-                name: "Embedding Generation",
-                type: "GENERATION",
-                startTime: "2023-10-26 10:23:45.050",
-                endTime: "2023-10-26 10:23:45.150",
-                latency: "0.1s",
-                cost: "$0.0001",
-                status: "success",
-                input: { text: "Hello, how are you?" },
-                output: { embedding: [0.1, 0.2, 0.3] }
-            },
-            {
-                id: "db_query",
-                name: "Vector DB Query",
-                type: "SPAN",
-                startTime: "2023-10-26 10:23:45.150",
-                endTime: "2023-10-26 10:23:45.450",
-                latency: "0.3s",
-                status: "success",
-                input: { vector: [0.1, 0.2, 0.3] },
-                output: { results: [] }
-            }
-        ]
-      },
-      {
-        id: "llm_call",
-        name: "LLM Generation (GPT-4)",
-        type: "GENERATION",
-        startTime: "2023-10-26 10:23:45.500",
-        endTime: "2023-10-26 10:23:46.200",
-        latency: "0.7s",
-        cost: "$0.0023",
-        status: "success",
-        input: {
-            model: "gpt-4",
-            messages: [{ role: "user", content: "Hello, how are you?" }]
-        },
-        output: {
-            choices: [{ message: { content: "I am an AI assistant, here to help you." } }]
-        }
-      },
-    ],
-  },
-];
 
-export default function TraceDetailPage({ params }: { params: { traceId: string } }) {
+export default function TraceDetailPage({ params }: { params: Promise<{ traceId: string }> }) {
+  const { traceId } = use(params);
   const [selectedObservation, setSelectedObservation] = useState<Observation | null>(null);
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [traceInfo, setTraceInfo] = useState<any>(null);
+
+  useEffect(() => {
+    // Simulate fetching trace details
+    // In a real app, we would fetch the specific trace by ID.
+    // Here we'll just generate a consistent tree based on the ID or random.
+    const isMedical = traceId.charCodeAt(traceId.length - 1) % 2 === 0;
+    const name = isMedical ? "Medical Diagnosis Assistant" : "Insurance Claim Eligibility Agent";
+    
+    const tree = generateObservationTree(traceId, name);
+    setObservations(tree);
+    
+    // Also set some basic trace info for the header
+    setTraceInfo({
+      id: traceId,
+      name,
+      timestamp: tree[0].startTime,
+      latency: tree[0].latency,
+      cost: tree[0].cost || "$0.0000",
+      status: tree[0].status
+    });
+  }, [traceId]);
 
   return (
     <div className="space-y-4 h-full flex flex-col">
@@ -103,23 +53,23 @@ export default function TraceDetailPage({ params }: { params: { traceId: string 
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold tracking-tight">Trace</h2>
               <Badge variant="outline" className="font-mono text-xs">
-                {params.traceId || "tr_a1b2c3d4e5"}
+                {traceId}
               </Badge>
             </div>
             <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                2025-11-21 21:09:52
+                {traceInfo?.timestamp || "Loading..."}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                1.63s
+                {traceInfo?.latency || "..."}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                $0.000362
+                {traceInfo?.cost || "..."}
               </span>
             </div>
           </div>
@@ -143,7 +93,7 @@ export default function TraceDetailPage({ params }: { params: { traceId: string 
             <CardTitle className="text-sm font-medium text-muted-foreground">Environment</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant="secondary">langfuse-llm-as-a-judge</Badge>
+            <Badge variant="secondary">production</Badge>
           </CardContent>
         </Card>
         <Card>
@@ -153,7 +103,7 @@ export default function TraceDetailPage({ params }: { params: { traceId: string 
           <CardContent>
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span className="text-lg font-semibold">$0.000362</span>
+              <span className="text-lg font-semibold">{traceInfo?.cost || "..."}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">752 → 38 tokens</p>
           </CardContent>
@@ -165,7 +115,7 @@ export default function TraceDetailPage({ params }: { params: { traceId: string 
           <CardContent>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-lg font-semibold">1.63s</span>
+              <span className="text-lg font-semibold">{traceInfo?.latency || "..."}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">P95: 2.4s</p>
           </CardContent>
@@ -202,7 +152,7 @@ export default function TraceDetailPage({ params }: { params: { traceId: string 
                 </CardHeader>
                 <CardContent className="flex-1 overflow-auto">
                   <TraceTree 
-                    observations={mockTraceData} 
+                    observations={observations} 
                     onSelectObservation={setSelectedObservation}
                     selectedId={selectedObservation?.id}
                   />
@@ -272,7 +222,7 @@ export default function TraceDetailPage({ params }: { params: { traceId: string 
                   <div className="bg-muted/50 rounded-md p-3 font-mono text-xs">
                     <pre>{JSON.stringify({
                       version: "1.0.0",
-                      environment: "langfuse-llm-as-a-judge",
+                      environment: "llm-as-a-judge",
                       model: "gpt-4",
                       temperature: 0.7,
                       max_tokens: 150

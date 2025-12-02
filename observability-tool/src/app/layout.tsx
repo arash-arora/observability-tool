@@ -7,7 +7,7 @@ import { Header } from "@/components/layout/Header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Langfuse Clone",
+  title: "Observability Tool",
   description: "Open Source LLM Engineering Platform Clone",
 };
 
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased bg-slate-50 dark:bg-slate-950`}>
+      <body className={`${inter.className} antialiased`}>
         <div className="flex h-screen overflow-hidden">
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">

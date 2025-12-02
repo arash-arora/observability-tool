@@ -17,109 +17,24 @@ import Link from "next/link";
 import { Search, Filter, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useState } from "react";
 
-const traces = [
-  {
-    id: "tr_a1b2c3d4e5",
-    timestamp: "2025-11-21 21:09:52",
-    name: "Execute evaluator: error-analysis",
-    input: "The agent may only answer questions related to Langfuse or the br...",
-    output: '{"reasoning":"The answer is fully focused on Langfuse and...',
-    latency: "1.63s",
-    cost: "$0.000362",
-    tokens: "752 → 38",
-    status: "success",
-    environment: "langfuse-llm-as-a-judge",
-  },
-  {
-    id: "tr_f6g7h8i9j0",
-    timestamp: "2025-11-21 21:09:51",
-    name: "Execute evaluator: is_question",
-    input: "Is the following user message a question?\\n\\nWhat can I use Langf...",
-    output: '{"reasoning":"The user message is phrased as a question...',
-    latency: "1.52s",
-    cost: "$0.000341",
-    tokens: "698 → 35",
-    status: "success",
-    environment: "default",
-  },
-  {
-    id: "tr_k1l2m3n4o5",
-    timestamp: "2025-11-21 21:09:51",
-    name: "Execute evaluator: helpfulness",
-    input: "Evaluate the helpfulness of the generation on a continuous scale fr...",
-    output: '{"reasoning":"The generation directly repeats the user\'s q...',
-    latency: "1.48s",
-    cost: "$0.000328",
-    tokens: "665 → 32",
-    status: "success",
-    environment: "sdk-experiment",
-  },
-  {
-    id: "tr_p6q7r8s9t0",
-    timestamp: "2025-11-21 21:09:50",
-    name: "Execute evaluator: is_same_language",
-    input: "Are these two languages the same?\\n\\n## Text 1\\n\\nWhat can I use ...",
-    output: '{"reasoning":"Text 1 is a question in English, and Text 2 is...',
-    latency: "1.41s",
-    cost: "$0.000315",
-    tokens: "642 → 30",
-    status: "success",
-    environment: "default",
-  },
-  {
-    id: "tr_u1v2w3x4y5",
-    timestamp: "2025-11-21 21:09:31",
-    name: "Execute evaluator: contains_pii",
-    input: "Does this text contain any PII (personal identifiable information)?\\n\\n...",
-    output: '{"reasoning":"No PII is present in the text", "score":0}',
-    latency: "1.38s",
-    cost: "$0.000298",
-    tokens: "615 → 28",
-    status: "success",
-    environment: "default",
-  },
-  {
-    id: "tr_z6a7b8c9d0",
-    timestamp: "2025-11-21 21:09:00",
-    name: "QA-Chatbot",
-    input: "What can I use Langfuse for?",
-    output: "# What you can use Langfuse for - Observability (tracing in ...",
-    latency: "2.15s",
-    cost: "$0.001245",
-    tokens: "1250 → 180",
-    status: "success",
-    environment: "production",
-  },
-  {
-    id: "tr_e1f2g3h4i5",
-    timestamp: "2025-11-21 20:41:09",
-    name: "Execute evaluator: error-analysis",
-    input: "The agent may only answer questions related to Langfuse or the br...",
-    output: '{"reasoning":"The answer is fully focused on Langfuse and...',
-    latency: "1.55s",
-    cost: "$0.000352",
-    tokens: "740 → 36",
-    status: "error",
-    environment: "langfuse-llm-as-a-judge",
-  },
-  {
-    id: "tr_j6k7l8m9n0",
-    timestamp: "2025-11-21 20:41:08",
-    name: "Execute evaluator: helpfulness",
-    input: "Evaluate the helpfulness of the generation on a continuous scale fr...",
-    output: '{"reasoning":"The generation is comprehensive and helpful...',
-    latency: "1.62s",
-    cost: "$0.000368",
-    tokens: "765 → 39",
-    status: "success",
-    environment: "sdk-experiment",
-  },
-];
+import { generateTraces } from "@/lib/mock-data";
+import { useEffect } from "react";
+
+// Define the Trace type based on the generated data
+type Trace = ReturnType<typeof generateTraces>[0];
 
 export default function TracesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [traces, setTraces] = useState<Trace[]>([]);
   const rowsPerPage = 50;
+
+  useEffect(() => {
+    setTraces(generateTraces(10));
+  }, []);
+
+  // Calculate total pages dynamically
+  const totalPages = Math.ceil(traces.length / rowsPerPage);
 
   return (
     <div className="space-y-4">
@@ -175,41 +90,61 @@ export default function TracesPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
-                  <TableHead className="w-[40px]">
+                  <TableHead className="w-10 align-middle">
                     <Star className="h-4 w-4 text-muted-foreground" />
                   </TableHead>
                   <TableHead className="font-semibold">Timestamp ▼</TableHead>
                   <TableHead className="font-semibold">Name</TableHead>
                   <TableHead className="font-semibold">Input</TableHead>
                   <TableHead className="font-semibold">Output</TableHead>
-                  <TableHead className="font-semibold text-right">Latency</TableHead>
-                  <TableHead className="font-semibold text-right">Cost</TableHead>
-                  <TableHead className="font-semibold text-right">Tokens</TableHead>
+                  <TableHead className="font-semibold text-right">
+                    Latency
+                  </TableHead>
+                  <TableHead className="font-semibold text-right">
+                    Cost
+                  </TableHead>
+                  <TableHead className="font-semibold text-right">
+                    Tokens
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {traces.map((trace) => (
-                  <TableRow 
-                    key={trace.id} 
+                  <TableRow
+                    key={trace.id}
                     className="hover:bg-muted/50 cursor-pointer border-b border-border/50"
                   >
-                    <TableCell>
+                    <TableCell className="align-middle">
                       <Star className="h-4 w-4 text-muted-foreground hover:text-primary" />
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableCell className="font-mono text-xs text-muted-foreground align-middle whitespace-nowrap pr-4">
                       {trace.timestamp}
                     </TableCell>
-                    <TableCell>
-                      <Link 
-                        href={`/traces/${trace.id}`} 
+                    <TableCell className="align-middle">
+                      <Link
+                        href={`/traces/${trace.id}`}
                         className="font-medium hover:text-primary transition-colors"
                       >
                         {trace.name}
                       </Link>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="text-xs font-normal">
-                          Env: {trace.environment}
+                        <Badge
+                          variant="secondary"
+                          className="text-xs font-normal"
+                        >
+                          {trace.environment}
                         </Badge>
+                          {/* Cloud provider badge (only show when provider exists) */}
+                          {trace.cloudProvider && (
+                            <>
+                              <Badge variant="outline" className="text-xs font-normal">
+                                {trace.cloudProvider.toUpperCase()}
+                              </Badge>
+                              {trace.cloudRegion && (
+                                <span className="text-xs text-muted-foreground">{trace.cloudRegion}</span>
+                              )}
+                            </>
+                          )}
                       </div>
                     </TableCell>
                     <TableCell className="max-w-[300px]">
@@ -240,19 +175,21 @@ export default function TracesPage() {
           {/* Pagination */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rows per page</span>
+              <span className="text-sm text-muted-foreground">
+                Rows per page
+              </span>
               <Button variant="outline" size="sm">
                 {rowsPerPage}
               </Button>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                Page {currentPage} of 7
+                Page {currentPage} of {totalPages}
               </span>
               <div className="flex items-center gap-1">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className="h-8 w-8"
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
@@ -260,30 +197,32 @@ export default function TracesPage() {
                   <ChevronLeft className="h-4 w-4" />
                   <ChevronLeft className="h-4 w-4 -ml-3" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className="h-8 w-8"
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className="h-8 w-8"
-                  onClick={() => setCurrentPage(Math.min(7, currentPage + 1))}
-                  disabled={currentPage === 7}
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className="h-8 w-8"
-                  onClick={() => setCurrentPage(7)}
-                  disabled={currentPage === 7}
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
                 >
                   <ChevronRight className="h-4 w-4" />
                   <ChevronRight className="h-4 w-4 -ml-3" />
@@ -295,7 +234,16 @@ export default function TracesPage() {
 
         <TabsContent value="observations">
           <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Observations view coming soon...</p>
+            <h3 className="text-lg font-semibold mb-2">Observations</h3>
+            <p className="text-muted-foreground">
+              View all observations derived from traces. Click below to open the
+              full observations list.
+            </p>
+            <div className="mt-4">
+              <Link href="/observations">
+                <Button>Open Observations</Button>
+              </Link>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>

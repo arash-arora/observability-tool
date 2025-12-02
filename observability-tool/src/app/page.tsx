@@ -1,29 +1,75 @@
 "use client";
 
 import { MetricCard } from "@/features/dashboard/components/MetricCard";
-import { Activity, Clock, DollarSign, Zap, AlertCircle, GitBranch, Workflow } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Activity,
+  Clock,
+  DollarSign,
+  Zap,
+  AlertCircle,
+  GitBranch,
+  Workflow,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  UsageTrendsChart, 
-  CostByModelChart, 
+import {
+  UsageTrendsChart,
+  CostByModelChart,
   LatencyDistributionChart,
   QualityScoresChart,
   TokenUsageChart,
+  TracesByCloudChart,
   ModelLatencyChart,
   ModelCostComparisonChart,
   AgentWorkflowChart,
-  ToolUsageChart
+  ToolUsageChart,
 } from "@/features/dashboard/components/AnalyticsCharts";
+import { useState, useEffect } from "react";
+import {
+  generateOverviewMetrics,
+  generateSlowestTraces,
+  generateRecentAlerts,
+  generateActiveAgents,
+  generateWorkflowFailures,
+  generateToolPerformance,
+} from "@/lib/mock-data";
 
 export default function Home() {
+  const [metrics, setMetrics] = useState<any>(null);
+  const [slowestTraces, setSlowestTraces] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [activeAgents, setActiveAgents] = useState<any[]>([]);
+  const [failures, setFailures] = useState<any[]>([]);
+  const [toolPerf, setToolPerf] = useState<any[]>([]);
+
+  useEffect(() => {
+    setMetrics(generateOverviewMetrics());
+    setSlowestTraces(generateSlowestTraces());
+    setAlerts(generateRecentAlerts());
+    setActiveAgents(generateActiveAgents());
+    setFailures(generateWorkflowFailures());
+    setToolPerf(generateToolPerformance());
+  }, []);
+
+  if (!metrics) return <div className="p-8">Loading dashboard...</div>;
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
-          <p className="text-muted-foreground mt-1">Monitor your LLM application performance and costs</p>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Analytics Dashboard
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Monitor your LLM application performance and costs
+          </p>
         </div>
       </div>
 
@@ -42,7 +88,7 @@ export default function Home() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="Total Traces"
-                value="12,847"
+                value={metrics.totalTraces}
                 description="from last 30 days"
                 icon={Activity}
                 trend="up"
@@ -50,7 +96,7 @@ export default function Home() {
               />
               <MetricCard
                 title="Total Cost"
-                value="$1,247.89"
+                value={metrics.totalCost}
                 description="from last 30 days"
                 icon={DollarSign}
                 trend="up"
@@ -58,7 +104,7 @@ export default function Home() {
               />
               <MetricCard
                 title="Avg Latency"
-                value="1.2s"
+                value={metrics.avgLatency}
                 description="P95: 2.4s"
                 icon={Clock}
                 trend="down"
@@ -66,7 +112,7 @@ export default function Home() {
               />
               <MetricCard
                 title="Success Rate"
-                value="98.7%"
+                value={metrics.successRate}
                 description="from last 30 days"
                 icon={Zap}
                 trend="up"
@@ -79,6 +125,9 @@ export default function Home() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Usage Trends</h3>
             <UsageTrendsChart />
+            <div className="mt-4">
+              <TracesByCloudChart />
+            </div>
           </div>
 
           {/* Model Comparisons */}
@@ -107,23 +156,28 @@ export default function Home() {
               <Card>
                 <CardHeader>
                   <CardTitle>Top Slowest Traces</CardTitle>
-                  <CardDescription>Traces with highest latency in last 24h</CardDescription>
+                  <CardDescription>
+                    Traces with highest latency in last 24h
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { name: "rag-pipeline-complex", latency: "5.2s", model: "gpt-4" },
-                      { name: "multi-agent-workflow", latency: "4.8s", model: "gpt-4" },
-                      { name: "document-analysis", latency: "3.9s", model: "claude-2" },
-                    ].map((trace, i) => (
-                      <div key={i} className="flex items-center justify-between">
+                    {slowestTraces.map((trace, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex-1">
                           <p className="text-sm font-medium">{trace.name}</p>
-                          <p className="text-xs text-muted-foreground">{trace.model}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {trace.model}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm font-mono">{trace.latency}</span>
+                          <span className="text-sm font-mono">
+                            {trace.latency}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -145,18 +199,18 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { type: "High Latency", trace: "chat-completion", time: "2h ago" },
-                      { type: "Cost Spike", trace: "batch-processing", time: "5h ago" },
-                      { type: "Error Rate", trace: "api-integration", time: "8h ago" },
-                    ].map((alert, i) => (
+                    {alerts.map((alert, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <AlertCircle className="h-4 w-4 text-destructive" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">{alert.type}</p>
-                          <p className="text-xs text-muted-foreground">{alert.trace}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {alert.trace}
+                          </p>
                         </div>
-                        <span className="text-xs text-muted-foreground">{alert.time}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {alert.time}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -174,7 +228,7 @@ export default function Home() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="Active Workflows"
-                value="210"
+                value={metrics.activeWorkflows}
                 description="from last 30 days"
                 icon={Workflow}
                 trend="up"
@@ -182,7 +236,7 @@ export default function Home() {
               />
               <MetricCard
                 title="Total Steps"
-                value="1,010"
+                value={metrics.totalSteps}
                 description="avg 4.8 steps/workflow"
                 icon={GitBranch}
                 trend="up"
@@ -190,7 +244,7 @@ export default function Home() {
               />
               <MetricCard
                 title="Tool Calls"
-                value="3,890"
+                value={metrics.toolCalls}
                 description="from last 30 days"
                 icon={Activity}
                 trend="up"
@@ -198,7 +252,7 @@ export default function Home() {
               />
               <MetricCard
                 title="Success Rate"
-                value="96.2%"
+                value={metrics.workflowSuccessRate}
                 description="workflow completion"
                 icon={Zap}
                 trend="up"
@@ -225,20 +279,22 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { tool: "web_search", latency: "2.3s", status: "healthy" },
-                      { tool: "code_executor", latency: "1.8s", status: "healthy" },
-                      { tool: "database_query", latency: "0.9s", status: "healthy" },
-                      { tool: "api_call", latency: "1.5s", status: "healthy" },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
+                    {toolPerf.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex-1">
                           <p className="text-sm font-medium">{item.tool}</p>
-                          <p className="text-xs text-muted-foreground">{item.status}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.status}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm font-mono">{item.latency}</span>
+                          <span className="text-sm font-mono">
+                            {item.latency}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -255,21 +311,26 @@ export default function Home() {
               <Card>
                 <CardHeader>
                   <CardTitle>Most Active Agents</CardTitle>
-                  <CardDescription>By workflow count (last 7 days)</CardDescription>
+                  <CardDescription>
+                    By workflow count (last 7 days)
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { name: "research-agent", workflows: 85, avgSteps: 5.2 },
-                      { name: "coding-agent", workflows: 62, avgSteps: 4.1 },
-                      { name: "data-agent", workflows: 48, avgSteps: 3.8 },
-                    ].map((agent, i) => (
-                      <div key={i} className="flex items-center justify-between">
+                    {activeAgents.map((agent, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex-1">
                           <p className="text-sm font-medium">{agent.name}</p>
-                          <p className="text-xs text-muted-foreground">{agent.avgSteps} avg steps</p>
+                          <p className="text-xs text-muted-foreground">
+                            {agent.avgSteps} avg steps
+                          </p>
                         </div>
-                        <span className="text-sm font-mono">{agent.workflows}</span>
+                        <span className="text-sm font-mono">
+                          {agent.workflows}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -282,18 +343,20 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { workflow: "multi-step-research", reason: "Tool timeout", time: "1h ago" },
-                      { workflow: "data-processing", reason: "API error", time: "3h ago" },
-                      { workflow: "code-generation", reason: "Rate limit", time: "5h ago" },
-                    ].map((failure, i) => (
+                    {failures.map((failure, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <AlertCircle className="h-4 w-4 text-destructive" />
                         <div className="flex-1">
-                          <p className="text-sm font-medium">{failure.workflow}</p>
-                          <p className="text-xs text-muted-foreground">{failure.reason}</p>
+                          <p className="text-sm font-medium">
+                            {failure.workflow}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {failure.reason}
+                          </p>
                         </div>
-                        <span className="text-xs text-muted-foreground">{failure.time}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {failure.time}
+                        </span>
                       </div>
                     ))}
                   </div>
