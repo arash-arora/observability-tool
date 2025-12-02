@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  langfuse-clone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: langfuse-clone:latest
+    container_name: langfuse-clone-app
+    ports:
+      - "8007:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
