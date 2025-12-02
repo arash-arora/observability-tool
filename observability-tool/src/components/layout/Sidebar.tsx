@@ -36,7 +36,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-muted/10 text-foreground">
+    <div className="fixed top-0 left-0 h-screen w-64 flex flex-col border-r bg-muted/10 text-foreground overflow-x-hidden">
       <div className="flex h-14 items-center border-b px-4 font-bold text-xl bg-background/50 backdrop-blur-sm">
         Observability Tool
       </div>

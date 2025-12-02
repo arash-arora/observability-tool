@@ -49,7 +49,7 @@ const ObservationRow = ({
     <div className="flex flex-col">
       <div
         className={cn(
-          "flex items-center gap-2 py-2 px-2 rounded-md cursor-pointer transition-colors border-l-2",
+          "flex items-center gap-2 py-2 px-2 rounded-md cursor-pointer transition-colors border-2",
           isSelected 
             ? "bg-primary/10 border-primary" 
             : "border-transparent hover:bg-muted hover:border-primary/50"

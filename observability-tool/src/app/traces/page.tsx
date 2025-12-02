@@ -86,90 +86,105 @@ export default function TracesPage() {
           </div>
 
           {/* Table */}
-          <Card className="overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-border">
-                  <TableHead className="w-10 align-middle">
-                    <Star className="h-4 w-4 text-muted-foreground" />
-                  </TableHead>
-                  <TableHead className="font-semibold">Timestamp ▼</TableHead>
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Input</TableHead>
-                  <TableHead className="font-semibold">Output</TableHead>
-                  <TableHead className="font-semibold text-right">
-                    Latency
-                  </TableHead>
-                  <TableHead className="font-semibold text-right">
-                    Cost
-                  </TableHead>
-                  <TableHead className="font-semibold text-right">
-                    Tokens
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {traces.map((trace) => (
-                  <TableRow
-                    key={trace.id}
-                    className="hover:bg-muted/50 cursor-pointer border-b border-border/50"
-                  >
-                    <TableCell className="align-middle">
-                      <Star className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground align-middle whitespace-nowrap pr-4">
-                      {trace.timestamp}
-                    </TableCell>
-                    <TableCell className="align-middle">
-                      <Link
-                        href={`/traces/${trace.id}`}
-                        className="font-medium hover:text-primary transition-colors"
-                      >
-                        {trace.name}
-                      </Link>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge
-                          variant="secondary"
-                          className="text-xs font-normal"
+          <Card className="overflow-hidden overflow-x-auto">
+            <div className="w-full overflow-x-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-b border-border">
+                    <TableHead className="w-10 align-middle">
+                      <Star className="h-4 w-4 text-muted-foreground" />
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Timestamp ▼
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Name
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Input
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Output
+                    </TableHead>
+                    <TableHead className="font-semibold text-right">
+                      Latency
+                    </TableHead>
+                    <TableHead className="font-semibold text-right">
+                      Cost
+                    </TableHead>
+                    <TableHead className="font-semibold text-right">
+                      Tokens
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {traces.map((trace) => (
+                    <TableRow
+                      key={trace.id}
+                      className="hover:bg-muted/50 cursor-pointer border-b border-border/50"
+                    >
+                      <TableCell className="align-middle">
+                        <Star className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground align-middle whitespace-nowrap pr-4">
+                        {trace.timestamp}
+                      </TableCell>
+                      <TableCell className="align-middle">
+                        <Link
+                          href={`/traces/${trace.id}`}
+                          className="font-medium hover:text-primary transition-colors"
                         >
-                          {trace.environment}
-                        </Badge>
+                          {trace.name}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs font-normal"
+                          >
+                            {trace.environment}
+                          </Badge>
                           {/* Cloud provider badge (only show when provider exists) */}
                           {trace.cloudProvider && (
                             <>
-                              <Badge variant="outline" className="text-xs font-normal">
+                              <Badge
+                                variant="outline"
+                                className="text-xs font-normal"
+                              >
                                 {trace.cloudProvider.toUpperCase()}
                               </Badge>
                               {trace.cloudRegion && (
-                                <span className="text-xs text-muted-foreground">{trace.cloudRegion}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {trace.cloudRegion}
+                                </span>
                               )}
                             </>
                           )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[300px]">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {trace.input}
-                      </p>
-                    </TableCell>
-                    <TableCell className="max-w-[300px]">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {trace.output}
-                      </p>
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {trace.latency}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {trace.cost}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm text-muted-foreground">
-                      {trace.tokens}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[300px]">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {trace.input}
+                        </p>
+                      </TableCell>
+                      <TableCell className="max-w-[300px]">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {trace.output}
+                        </p>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm">
+                        {trace.latency}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm">
+                        {trace.cost}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                        {trace.tokens}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
 
           {/* Pagination */}
